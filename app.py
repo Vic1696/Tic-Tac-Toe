@@ -1,12 +1,9 @@
+from flask import Flask, render_template, request, jsonify
+
+app = Flask(__name__)
+
 board = ['' for _ in range (9)]
 current_player = 'X'
-
-def print_board():
-    print (f"{board[0]} | {board[1]} | {board[2]}")
-    print("--+---+--")
-    print (f"{board[3]} | {board[4]} | {board[5]}")
-    print("--+---+--")
-    print (f"{board[6]} | {board[7]} | {board[8]}")
 
 def check_win():
     win_conditions = [
@@ -18,27 +15,37 @@ def check_win():
         if board[condition[0]] == board[condition[1]] == board[condition[2]] and board[condition[0]] != '':
             return True
     return False
-    
+
 def check_draw():
     return '' not in board
+    
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-def play_game():
-    current_player = 'X'
-    while True:
-        print_board()
-        move = int(input(f"Player {current_player}, choose a position (1-9): ")) - 1
-        if board[move] == '':
-            board[move] = current_player
-            if check_win():
-                print_board()
-                print(f"Player {current_player} wins!")
-                break
-            elif check_draw():
-                print_board()
-                print("It's a draw!")
-                break
-            current_player = 'O' if current_player == 'X' else 'X'
+@app.route('/move', methods=['POST'])
+def move():
+    global board, current_player
+    data = request.get_json()
+    index = data['index']
+
+    if board[index]  == '' and not check_win():
+        board[index] == current_player
+        if check_win():
+            return jsonify({'status': 'win', 'player': current_player})
+        elif check_draw():
+            return({'status': 'draw'})
         else:
-            print("Invalid move. Try again.")
+            current_player = 'O' if current_player == 'X'   else 'X'
+            return jsonify({'status': 'continue', 'player': current_player})
+    return jsonify({'status': 'invalid'})
 
-play_game()
+@app.route('/reset', methods=['POST'])
+def reset():
+    global board, current_player
+    board= ['' in range(9)]
+    current_player = 'X'
+    return jsonify({'status': 'reset'})
+
+if __name__ == '__main__':
+    app.run(debug=True)

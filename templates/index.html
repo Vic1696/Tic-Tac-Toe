@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        let currentPlayer = 'X';
+
+        function handleClick(index) {
+            fetch('/move', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ index: index })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'continue') {
+                    document.getElementById(`cell-${index}`).innerText = currentPlayer;
+                    currentPlayer = data.player;
+                } else if (data.status === 'win') {
+                    document.getElementById(`cell-${index}`).innerText = currentPlayer;
+                    alert(`Player ${currentPlayer} wins!`);
+                } else if (data.status === 'draw') {
+                    document.getElementById(`cell-${index}`).innerText = currentPlayer;
+                    alert("It's a draw!");
+                } else {
+                    alert('Invalid move. Try again.');
+                }
+            });
+        }
+
+        function resetGame() {
+            fetch('/reset', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'reset') {
+                    currentPlayer = 'X';
+                    for (let i = 0; i < 9; i++) {
+                        document.getElementById(`cell-${i}`).innerText = '';
+                    }
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Tic Tac Toe</h1>
+        <div class="board">
+            <div id="cell-0" class="cell" onclick="handleClick(0)"></div>
+            <div id="cell-1" class="cell" onclick="handleClick(1)"></div>
+            <div id="cell-2" class="cell" onclick="handleClick(2)"></div>
+            <div id="cell-3" class="cell" onclick="handleClick(3)"></div>
+            <div id="cell-4" class="cell" onclick="handleClick(4)"></div>
+            <div id="cell-5" class="cell" onclick="handleClick(5)"></div>
+            <div id="cell-6" class="cell" onclick="handleClick(6)"></div>
+            <div id="cell-7" class="cell" onclick="handleClick(7)"></div>
+            <div id="cell-8" class="cell" onclick="handleClick(8)"></div>
+        </div>
+        <button onclick="resetGame()">Reset</button>
+    </div>
+</body>
+</html>
